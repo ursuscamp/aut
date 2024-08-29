@@ -5,7 +5,8 @@ use std::{
 };
 
 use anyhow::{anyhow, Context};
-use argon2::{Argon2, PasswordHash, PasswordVerifier};
+use argon2::{password_hash::SaltString, Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
+use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
 
 #[tokio::main]
@@ -84,5 +85,48 @@ impl UserDatabase {
         let db_str = std::fs::read_to_string(path).context("Reading db file")?;
         let db: UserDatabase = serde_yaml::from_str(&db_str).context("Parsing db file")?;
         Ok(db)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+struct UserForm {
+    disabled: bool,
+    displayname: String,
+    email: String,
+    password: String,
+    confirm_password: String,
+    groups: String,
+}
+
+impl UserForm {
+    pub fn hashed_password(&self) -> String {
+        let salt = SaltString::generate(&mut OsRng);
+        let a2 = Argon2::default();
+        let password_hash = a2
+            .hash_password(self.password.as_bytes(), &salt)
+            .unwrap()
+            .to_string();
+        password_hash
+    }
+}
+
+impl From<UserForm> for User {
+    fn from(value: UserForm) -> Self {
+        let password = value.hashed_password();
+        let UserForm {
+            disabled,
+            displayname,
+            email,
+            password: _,
+            confirm_password: _,
+            groups,
+        } = value;
+        User {
+            disabled,
+            displayname,
+            email,
+            password,
+            groups: groups.split_whitespace().map(ToString::to_string).collect(),
+        }
     }
 }
