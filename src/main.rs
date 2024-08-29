@@ -4,7 +4,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anyhow::Context;
+use anyhow::{anyhow, Context};
+use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use serde::{Deserialize, Serialize};
 
 #[tokio::main]
@@ -12,8 +13,6 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
     let config = Config::new()?;
     let db = UserDatabase::from_file(&config.users_file)?;
-
-    println!("{db:#?}");
 
     Ok(())
 }
@@ -51,6 +50,27 @@ struct User {
     email: String,
     password: String,
     groups: Vec<String>,
+}
+
+impl User {
+    pub fn password_hash(&self) -> anyhow::Result<PasswordHash> {
+        match PasswordHash::new(&self.password) {
+            Ok(pw) => Ok(pw),
+            Err(_) => anyhow::bail!(
+                "User {} (email {}) has invalid password hash",
+                self.displayname,
+                self.email
+            ),
+        }
+    }
+
+    pub fn verify_password(&self, passwd: &str) -> anyhow::Result<bool> {
+        let hash = self.password_hash()?;
+        let valid = Argon2::default()
+            .verify_password(passwd.as_bytes(), &hash)
+            .is_ok();
+        Ok(valid)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
