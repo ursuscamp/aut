@@ -6,6 +6,7 @@ use askama::Template;
 use axum::{
     extract::{Path, State},
     http::StatusCode,
+    response::Redirect,
     routing::{get, post},
     Form, Router,
 };
@@ -20,6 +21,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/", get(list_users))
         .route("/users/:username", get(edit_user))
         .route("/users", post(save_user))
+        .route("/users/delete/:username", get(delete_user))
         .with_state(config.clone());
     let bind = format!("{}:{}", config.host, config.port);
     let listener = tokio::net::TcpListener::bind(&bind).await?;
@@ -217,11 +219,7 @@ async fn edit_user(
     tracing::debug!("Editing user {username}.");
     let db = UserDatabase::from_file(&config.users_file)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    let user = db
-        .users
-        .get(&username)
-        .ok_or(StatusCode::NOT_FOUND)?
-        .clone();
+    let user = db.users.get(&username).cloned().unwrap_or_default();
     let mut form: UserForm = user.into();
     form.name = username;
     Ok(EditUserTemplate {
@@ -254,4 +252,16 @@ async fn save_user(
         error: None,
         form,
     })
+}
+
+async fn delete_user(
+    State(config): State<Arc<Config>>,
+    Path(username): Path<String>,
+) -> Result<Redirect, StatusCode> {
+    let mut db = UserDatabase::from_file(&config.users_file)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    db.users.remove(&username);
+    db.persist(&config.users_file)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    Ok(Redirect::permanent("/"))
 }

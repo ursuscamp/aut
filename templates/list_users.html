@@ -2,6 +2,11 @@
 
 {% block content %}
 <h1>Users</h1>
+
+<p>
+	<a href="/users/new">New user</a>
+</p>
+
 <ul>
 	{% for (name, user) in users %}
 	<li>

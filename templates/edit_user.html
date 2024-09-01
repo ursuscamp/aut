@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
+<script>
+function delete_user(event) {
+	event.preventDefault();
+	if (confirm('Are you sure you want to delete this user?')) {
+		window.location.href = '/users/delete/{{form.name}}';
+	}
+}
+</script>
+
 <nav aria-label="breadcrumb">
 	<ul>
 		<li><a href="/">Home</a></li>
@@ -49,7 +58,7 @@
 	</label>
 	<fieldset class="grid">
 		<input type="submit">
-		<input type="button" value="Delete" class="contrast pico-color-red-600" onclick="confirm('Are you sure you want to delete this user?')">
+		<input type="button" value="Delete" class="contrast pico-color-red-600" onclick="delete_user(event)">
 	</fieldset>
 </form>
 {% endblock %}
