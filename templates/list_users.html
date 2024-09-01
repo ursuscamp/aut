@@ -5,7 +5,7 @@
 <ul>
 	{% for (name, user) in users %}
 	<li>
-		<a href="/users/{{name}}">{{name}} ({{user.displayname}}, {{user.email}})</a>
+		<a href="/users/{{name}}" class="primary">{{name}}</a>
 	</li>
 	{% endfor %}
 </ul>

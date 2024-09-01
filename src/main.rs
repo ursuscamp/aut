@@ -250,7 +250,7 @@ async fn save_user(
     db.persist(&config.users_file)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     Ok(EditUserTemplate {
-        success: Some(String::from("User successfully saved.")),
+        success: Some(String::from("User saved.")),
         error: None,
         form,
     })

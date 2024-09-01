@@ -1,46 +1,55 @@
 {% extends "base.html" %}
 
 {% block content %}
+<nav aria-label="breadcrumb">
+	<ul>
+		<li><a href="/">Home</a></li>
+		<li>Edit {{form.name}}</li>
+	</ul>
+</nav>
+
 <h1>Edit {{form.name}}</h1>
 {% if let Some(error) = error %}
-<p>Error: {{error}}</p>
+<p class="pico-color-red-500">Error: {{error}}</p>
 {% endif %}
 
 {% if let Some(success) = success %}
-<p>Success: {{success}}</p>
+<p class="pico-color-green-500">Success: {{success}}</p>
 {% endif %}
 <form action="/users" method="post">
-	<p>
-		<label for="name">Username</label>
+	<label for="name">
+		Username
 		<input id="name" name="name" value="{{form.name}}">
-	</p>
-	<p>
-		<label for="disabled">Disabled</label>
-		<input id="disabled" name="disabled" value="disabled" type="checkbox" {% if form.disabled.is_some() %}checked{% endif %}>
-	</p>
-	<p>
-		<label for="displayname">Display Name</label>
+	</label>
+	<fieldset>
+		<label for="disabled">
+			<input id="disabled" name="disabled" value="disabled" type="checkbox" {% if form.disabled.is_some() %}checked{% endif %}>
+			Disabled
+		</label>
+	</fieldset>
+	<label for="displayname">
+		Display Name
 		<input id="displayname" name="displayname" value="{{form.displayname}}">
-	</p>
-	<p>
-		<label for="email">Email</label>
+	</label>
+	<label for="email">
+		Email
 		<input id="email" name="email" value="{{form.email}}">
-	</p>
-	<p>
-		<label for="password">Password</label>
+	</label>
+	<label for="password">
+		Password
 		<input id="password" name="password" value="{{form.password}}" type="password">
-	</p>
-	<p>
-		<label for="confirm_password">Confirm Password</label>
+	</label>
+	<label for="confirm_password">
+		Confirm Password
 		<input id="confirm_password" name="confirm_password" value="{{form.confirm_password}}" type="password">
-	</p>
-	<p>
-		<label for="groups">Groups</label>
+	</label>
+	<label for="groups">
+		Groups
 		<input id="groups" name="groups" value="{{form.groups}}">
-	</p>
-
-	<p>
+	</label>
+	<fieldset class="grid">
 		<input type="submit">
-	</p>
+		<input type="button" value="Delete" class="contrast pico-color-red-600" onclick="confirm('Are you sure you want to delete this user?')">
+	</fieldset>
 </form>
 {% endblock %}
