@@ -6,5 +6,5 @@ RUN cargo install --path .
 FROM ubuntu:22.04
 COPY --from=builder /usr/local/cargo/bin/aut /usr/local/bin/aut
 EXPOSE 5555
-ENV AUT_USERS_FILE=/etc/aut/users.yml
+ENV AUT_USERS_FILE=/config/users.yml
 CMD ["aut"]

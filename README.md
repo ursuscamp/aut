@@ -35,7 +35,7 @@ services:
     image: ghcr.io/ursuscamp/aut:master
     container_name: aut
     volumes:
-      - ./appdata/authelia/config/users_database.yml:/etc/aut/users.yml
+      - ./appdata/authelia/config/users_database.yml:/config/users.yml
     restart: unless-stopped
     networks:
       - user-admin
@@ -48,7 +48,7 @@ A few things to note here:
 
 1. AUT doesn't publish any ports on the host.
 2. AUT occupies its own network which Caddy connects to.
-3. There is a volume mapping from the Authelia users file to `/etc/aur/users.yml` in the AUT container. If you plan to run this without docker, you can set the `AUT_USERS_FILE` environment variable to change the path where the user file is expected to be found.
+3. There is a volume mapping from the Authelia users file to `/config/users.yml` in the AUT container. If you plan to run this without docker, you can set the `AUT_USERS_FILE` environment variable to change the path where the user file is expected to be found.
 
 1 and 2 are recommended because AUT doesn't implement any auth on its own. So we put AUT behind a reverse proxy with forward auth, not exposing any ports on the host and segregated to its own network to avoid exposure other docker containers in my project.
 
