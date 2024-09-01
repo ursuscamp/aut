@@ -119,6 +119,22 @@ impl UserForm {
             .to_string();
         password_hash
     }
+
+    pub fn validate(&self) -> Option<String> {
+        if self.name.is_empty() {
+            return Some("Name must be present.".into());
+        }
+
+        if self.displayname.is_empty() {
+            return Some("Display name must be present.".into());
+        }
+
+        if self.password != self.confirm_password {
+            return Some("Passwords do not match.".into());
+        }
+
+        None
+    }
 }
 
 impl From<UserForm> for User {
@@ -210,13 +226,12 @@ async fn save_user(
     Form(form): Form<UserForm>,
 ) -> Result<EditUserTemplate, StatusCode> {
     tracing::debug!("Saving user.");
-    tracing::debug!("{form:?}");
     let mut db = UserDatabase::from_file(&config.users_file)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    if form.password != form.confirm_password {
+    if let Some(error) = form.validate() {
         return Ok(EditUserTemplate {
             success: None,
-            error: Some("Passwords to not match.".to_string()),
+            error: Some(error),
             form,
         });
     }
