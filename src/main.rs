@@ -137,6 +137,10 @@ impl UserForm {
             return Some("Display name must be present.".into());
         }
 
+        if self.password.is_empty() {
+            return Some("Password must be supplied.".into());
+        }
+
         if self.password != self.confirm_password {
             return Some("Passwords do not match.".into());
         }
