@@ -28,7 +28,7 @@ function delete_user(event) {
 <form action="/users" method="post">
 	<label for="name">
 		Username
-		<input id="name" name="name" value="{{form.name}}">
+		<input id="name" name="name" value="{{form.name}}" placeholder="john">
 	</label>
 	<fieldset>
 		<label for="disabled">
@@ -38,11 +38,11 @@ function delete_user(event) {
 	</fieldset>
 	<label for="displayname">
 		Display Name
-		<input id="displayname" name="displayname" value="{{form.displayname}}">
+		<input id="displayname" name="displayname" value="{{form.displayname}}" placeholder="John Smith">
 	</label>
 	<label for="email">
 		Email
-		<input id="email" name="email" value="{{form.email}}">
+		<input id="email" name="email" value="{{form.email}}" placeholder="email@example.com">
 	</label>
 	<label for="password">
 		Password
@@ -54,7 +54,7 @@ function delete_user(event) {
 	</label>
 	<label for="groups">
 		Groups
-		<input id="groups" name="groups" value="{{form.groups}}">
+		<input id="groups" name="groups" value="{{form.groups}}" placeholder="admins users">
 	</label>
 	<fieldset class="grid">
 		<input type="submit">
