@@ -6,8 +6,8 @@ use askama::Template;
 use axum::{
     extract::{Path, State},
     http::StatusCode,
-    routing::get,
-    Router,
+    routing::{get, post},
+    Form, Router,
 };
 use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
@@ -19,6 +19,7 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         .route("/", get(list_users))
         .route("/users/:username", get(edit_user))
+        .route("/users", post(save_user))
         .with_state(config.clone());
     let bind = format!("{}:{}", config.host, config.port);
     let listener = tokio::net::TcpListener::bind(&bind).await?;
@@ -97,10 +98,10 @@ impl UserDatabase {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 struct UserForm {
     name: String,
-    disabled: bool,
+    disabled: Option<String>,
     displayname: String,
     email: String,
     password: String,
@@ -133,7 +134,7 @@ impl From<UserForm> for User {
             groups,
         } = value;
         User {
-            disabled,
+            disabled: disabled.is_some(),
             displayname,
             email,
             password,
@@ -148,7 +149,11 @@ impl From<User> for UserForm {
         let User { disabled, displayname, email, password: _, groups } = value;
         UserForm {
             name: String::new(),
-            disabled,
+            disabled: if disabled {
+                Some(String::from("disabled"))
+            } else {
+                None
+            },
             displayname,
             email,
             password: String::new(),
@@ -174,6 +179,8 @@ async fn list_users(State(config): State<Arc<Config>>) -> Result<UsersTemplate, 
 #[derive(Debug, Template)]
 #[template(path = "edit_user.html")]
 pub struct EditUserTemplate {
+    success: Option<String>,
+    error: Option<String>,
     form: UserForm,
 }
 
@@ -191,5 +198,33 @@ async fn edit_user(
         .clone();
     let mut form: UserForm = user.into();
     form.name = username;
-    Ok(EditUserTemplate { form })
+    Ok(EditUserTemplate {
+        success: None,
+        error: None,
+        form,
+    })
+}
+
+async fn save_user(
+    State(config): State<Arc<Config>>,
+    Form(form): Form<UserForm>,
+) -> Result<EditUserTemplate, StatusCode> {
+    tracing::debug!("Saving user.");
+    tracing::debug!("{form:?}");
+    let mut db = UserDatabase::from_file(&config.users_file)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    if form.password != form.confirm_password {
+        return Ok(EditUserTemplate {
+            success: None,
+            error: Some("Passwords to not match.".to_string()),
+            form,
+        });
+    }
+    let user: User = form.clone().into();
+    db.users.insert(form.name.clone(), user);
+    Ok(EditUserTemplate {
+        success: Some(String::from("User successfully saved.")),
+        error: None,
+        form,
+    })
 }

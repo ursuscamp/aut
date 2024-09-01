@@ -2,10 +2,21 @@
 
 {% block content %}
 <h1>Edit {{form.name}}</h1>
-<form method="POST">
+{% if let Some(error) = error %}
+<p>Error: {{error}}</p>
+{% endif %}
+
+{% if let Some(success) = success %}
+<p>Success: {{success}}</p>
+{% endif %}
+<form action="/users" method="post">
 	<p>
 		<label for="name">Username</label>
 		<input id="name" name="name" value="{{form.name}}">
+	</p>
+	<p>
+		<label for="disabled">Disabled</label>
+		<input id="disabled" name="disabled" value="disabled" type="checkbox" {% if form.disabled.is_some() %}checked{% endif %}>
 	</p>
 	<p>
 		<label for="displayname">Display Name</label>
