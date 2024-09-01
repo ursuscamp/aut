@@ -96,6 +96,12 @@ impl UserDatabase {
         let db: UserDatabase = serde_yaml::from_str(&db_str).context("Parsing db file")?;
         Ok(db)
     }
+
+    pub fn persist(&self, path: &std::path::Path) -> anyhow::Result<()> {
+        let db_str = serde_yaml::to_string(&self)?;
+        std::fs::write(path, db_str)?;
+        Ok(())
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -237,6 +243,8 @@ async fn save_user(
     }
     let user: User = form.clone().into();
     db.users.insert(form.name.clone(), user);
+    db.persist(&config.users_file)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     Ok(EditUserTemplate {
         success: Some(String::from("User successfully saved.")),
         error: None,
