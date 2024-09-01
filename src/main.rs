@@ -188,14 +188,18 @@ impl From<User> for UserForm {
 #[derive(Debug, Template)]
 #[template(path = "list_users.html")]
 pub struct UsersTemplate {
-    users: HashMap<String, User>,
+    users: Vec<(String, User)>,
 }
 
 async fn list_users(State(config): State<Arc<Config>>) -> Result<UsersTemplate, StatusCode> {
     tracing::debug!("Retrieving user list.");
     let db = UserDatabase::from_file(&config.users_file)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    Ok(UsersTemplate { users: db.users })
+    let mut sorted_users = db.users.into_iter().collect::<Vec<_>>();
+    sorted_users.sort_by(|a, b| a.0.cmp(&b.0));
+    Ok(UsersTemplate {
+        users: sorted_users,
+    })
 }
 
 #[derive(Debug, Template)]
