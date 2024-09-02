@@ -1,4 +1,4 @@
-use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
+use argon2::{password_hash::SaltString, Argon2, ParamsBuilder, PasswordHasher};
 use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
 
@@ -18,7 +18,17 @@ pub struct UserForm {
 impl UserForm {
     pub fn hashed_password(&self) -> String {
         let salt = SaltString::generate(&mut OsRng);
-        let a2 = Argon2::default();
+        //let a2 = Argon2::default();
+        let a2 = Argon2::new(
+            argon2::Algorithm::Argon2id,
+            argon2::Version::V0x13,
+            ParamsBuilder::new()
+                .m_cost(65536)
+                .t_cost(3)
+                .p_cost(4)
+                .build()
+                .unwrap(),
+        );
         let password_hash = a2
             .hash_password(self.password.as_bytes(), &salt)
             .unwrap()
